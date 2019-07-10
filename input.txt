@@ -1,0 +1,3 @@
+﻿Reserved
+Li Al O
+Si:Cl#4 Al:Cl#3 Li#2:S Al#2:O#3 Al#2:S#3 Li:Cl Li#2:O
