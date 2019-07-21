@@ -2,6 +2,22 @@
 
 #include "defines.h"
 
+#include "element.h"
+
+class Reagent
+{
+	std::vector<Element> _self;
+public:
+	Reagent();
+	Reagent(std::vector<std::string> name, std::vector<int> atom_count);
+
+	const std::vector<Element>& operator()() const;
+	const Element& operator()(int idx) const;
+
+	void insert(const Element& element);
+	void remove(int idx);
+};
+
 inline reagent to_reagent(std::vector<std::string> name, std::vector<int> atom_count) {
 	reagent r;
 

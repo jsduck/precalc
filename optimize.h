@@ -2,12 +2,15 @@
 
 #include "defines.h"
 
+#include "statedb.h"
+
 #include <gurobi_c++.h>
 #include <unordered_map>
-#include "reagent.h"
+#include "reagentdb.h"
 
 using namespace std;
 
+// TODO: std::equal instead
 inline int compare_stoichs(std::vector<int> s1, std::vector<int> s2) {
 	int l = 0, g = 0, e = 0;
 	for (int i = 0; i < s1.size(); i++) {
@@ -162,9 +165,27 @@ inline std::vector<std::vector<int>> optimize(GRBEnv env, std::vector<std::strin
 	return {};
 }
 
-inline void optimize(std::vector<reagent> lhs, std::vector<std::string> var_name, std::vector<std::vector<int>> oxidation_state, char type = 'I', std::pair<int, int> range = { 0, 20 }) {
+
+inline int validate_oxidation_state_sign(std::vector<int> oxidation_state) {
+	int ap = 0, an = 0;
+	for (auto os : oxidation_state) {
+		if (os >= 0)
+			ap++;
+		if (os <= 0)
+			an++;
+	}
+	if (ap == oxidation_state.size())
+		return 1;
+	if (an == oxidation_state.size())
+		return -1;
+
+	return 0;
+}
+
+inline void optimize(ReagentDB rdb, std::vector<std::string> var_name, std::vector<std::vector<int>> oxidation_state, char type = 'I', std::pair<int, int> range = { 0, 20 }) {
 	GRBEnv env;
-	auto rq = quantify_reagents(lhs, var_name);
+	auto rq = rdb.quanitfy(var_name);
+
 	for (auto os : oxidation_state) {
 		const int valid = validate_oxidation_state_sign(os);
 		if (valid == 0) {
@@ -191,8 +212,8 @@ inline void optimize(std::vector<reagent> lhs, std::vector<std::string> var_name
 							spacing_i += 3;
 					}
 
-					auto rhs = to_reagent(var_name, vi);
-					auto res = validate_reagents(lhs, rhs);
+					auto rhs = Reagent(var_name, vi);
+					auto res = rdb.validate(rhs);//validate_reagents(lhs, rhs);
 					std::cout << setw(10-spacing_i) << " ";
 					if (res == 0) {
 						std::cout << "validated";
