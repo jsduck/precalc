@@ -1,10 +1,14 @@
 ﻿#include "reagent.h"
+#include "elementdb.h"
+
+#include <iostream>
 
 Reagent::Reagent() = default;
 
-Reagent::Reagent(std::vector<std::string> name, std::vector<int> atom_count) {
+Reagent::Reagent(std::vector<std::string> name, std::vector<double> atom_count) {
 	for (auto i = 0; i < name.size(); i++) {
 		_self.emplace_back(name[i], atom_count[i]);
+		//std::cout << ElementDB::map()[name[i]]().mass << " " << std::endl;
 	}
 }
 
@@ -18,6 +22,7 @@ const Element& Reagent::operator()(int idx) const {
 
 void Reagent::insert(const Element& element) {
 	_self.push_back(element);
+	_mass += element().mass * element().q;
 }
 
 void Reagent::remove(int idx) {

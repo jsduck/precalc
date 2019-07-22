@@ -7,8 +7,11 @@
 
 #include "gurobi_c++.h"
 #include <unordered_map>
+#include "elementdb.h"
 
 // NOTE: try the saving of models, see if it uses too much memory
+
+class ElementDB;
 
 struct ConstrData
 {
@@ -18,6 +21,7 @@ struct ConstrData
 	std::string name = "";
 };
 
+// TODO: clean this whole mess up
 struct ModelData
 {
 	struct Params
@@ -33,6 +37,9 @@ struct ModelData
 	std::unordered_map<std::string, GRBVar> vars;
 	std::vector<double> coefficients;
 
+	std::string label = "";
+	Reagent reagent;
+
 	std::vector<GRBConstr> constrs;
 	struct
 	{
@@ -42,7 +49,7 @@ struct ModelData
 	} options;
 };
 
-struct Model
+class Model
 {
 private:
 	GRBModel* _self;
@@ -146,7 +153,9 @@ public:
 			std::cout << "Exception during optimization" << std::endl;
 		}
 	}
-
+	~Model() {
+		_self->terminate();
+	}
 	const Model* operator()() const {
 		return this;
 	}
@@ -157,7 +166,7 @@ public:
 	}
 
 	// compare solutions
-	static int compare(std::vector<int> s1, std::vector<int> s2) {
+	static int compare(std::vector<double> s1, std::vector<double> s2) {
 		int l = 0, g = 0, e = 0;
 		for (int i = 0; i < s1.size(); ++i) {
 			if (s1[i] > s2[i]) ++g;
@@ -181,18 +190,31 @@ public:
 	}
 
 	// solve
-	std::vector<std::vector<int>> solve() {
+	std::vector<std::vector<double>> solve() {
 		_self->optimize();
 
 		auto status = _self->get(GRB_IntAttr_Status);
 		if (status != GRB_OPTIMAL) {
+			/*std::cout << "The model is infeasible; computing IIS" << std::endl << std::endl;
+
+			_self->computeIIS();
+			std::cout << "The following constraints cannot be satisfied" << std::endl;
+			auto c = _self->getConstrs();
+			for (int i = 0; i < _self->get(GRB_IntAttr_NumConstrs); ++i)
+			{
+				if (c[i].get(GRB_IntAttr_IISConstr) == 1)
+				{
+					std::cout << c[i].get(GRB_StringAttr_ConstrName) << std::endl;
+				}
+			}
+			*/
 			return {};
 		}
 
-		std::vector<std::vector<int>> temp;
+		std::vector<std::vector<double>> temp;
 
 		// optimal solution
-		std::vector<int> s;
+		std::vector<double> s;
 		for (auto& v : _data.vars) {
 			s.push_back(v.second.get(GRB_DoubleAttr_X));
 		}
@@ -201,7 +223,7 @@ public:
 		int sc = _self->get(GRB_IntAttr_SolCount);
 		if (_data.options.num_solutions > 1 && sc > 1 ) {
 			for (int i = 0; i < sc; ++i) {
-				std::vector<int> iv;
+				std::vector<double> iv;
 				_self->set(GRB_IntParam_SolutionNumber, i);
 				auto nv = _self->getVars();
 
@@ -230,20 +252,36 @@ public:
 class ModelDB
 {
 	GRBEnv _self;
+	ElementDB _edb;
 	std::vector<Model*> _models;
 
 public:
+	struct
+	{
+		bool use_edb = false;
+	} property;
+
 	ModelDB();
+	ModelDB(const ElementDB& edb) {
+		_edb = edb;
+	}
 
 	static int validate_state_sign_i(std::vector<int> state);
 
 	void insert(Model* m);
 	void insert(std::vector<std::vector<std::pair<std::string, double>>> lhs,
 		std::vector<std::vector<std::pair<std::string, double>>> rhs, std::vector<char> sense, char type = 'I',
-		std::pair<double, double> range = { 0, 20 });
+		std::pair<double, double> range = { 0, 20 }, Reagent re = Reagent());
 	void erase(int idx);
+	void clear() {
+		for (auto &m : _models) {
+			delete m;
+		}
 
-	int solve(ReagentDB rdb);
+		_models.clear();
+	}
+
+	std::vector<std::vector<std::vector<double>>> solve(ReagentDB rdb, std::ostream& out = std::cout, bool validate = false);
 
 	// TODO: think
 	// so data-> model_data needs ConstrData which needs GRBVar to be init

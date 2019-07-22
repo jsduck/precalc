@@ -4,7 +4,7 @@
 #include <iostream>
 
 namespace utils {
-	inline void ncout(double n, bool nline = false, int spacing = 8) {
+	inline void ncout(double n, std::ostream& out = std::cout, int spacing = 8, bool nline = false) {
 		int s = 1;
 		int ni = n;
 		
@@ -18,11 +18,11 @@ namespace utils {
 
 		//std::cout << "@" << s << "@";
 
-		std::cout << std::setw(spacing - s) << " ";
+		out << std::setw(spacing - s) << " ";
 
-		std::cout << n;
+		out << n;
 		if (nline)
-			std::cout << std::endl;
+			out << std::endl;
 	}
 
 	inline int ndigits(int n) {

@@ -16,23 +16,3 @@
 
 
 #define NLINE std::cout << std::endl;
-
-struct coefficient
-{
-	coefficient() {
-		name = "nul";
-		value = 0.0;
-	}
-	coefficient(std::string n, double c) {
-		name = n;
-		value = c;
-	}
-
-	std::string name;
-	double value;
-};
-
-struct reagent
-{
-	std::vector<std::pair<std::string, int>> element;
-};

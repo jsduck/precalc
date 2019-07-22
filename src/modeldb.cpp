@@ -24,7 +24,7 @@ void ModelDB::insert(Model* m) {
 
 void ModelDB::insert(std::vector<std::vector<std::pair<std::string, double>>> lhs,
                      std::vector<std::vector<std::pair<std::string, double>>> rhs, std::vector<char> sense, char type,
-                     std::pair<double, double> range) {
+                     std::pair<double, double> range, Reagent re) {
 	//params setup
 	ModelData md;
 	// options phase
@@ -40,6 +40,9 @@ void ModelDB::insert(std::vector<std::vector<std::pair<std::string, double>>> lh
 	md.lhs = lhs;
 	md.rhs = rhs;
 	md.sense = sense;
+	// misc stuff
+	md.reagent = re;
+	md.label = re.str();
 	//now create expressions based on oxidation state
 	_models.push_back(new Model(_self, md));
 }
@@ -48,15 +51,20 @@ void ModelDB::erase(int idx) {
 	_models.erase(_models.begin() + idx);
 }
 
-int ModelDB::solve(ReagentDB rdb)
+std::vector<std::vector<std::vector<double>>> ModelDB::solve(ReagentDB rdb, std::ostream& out, bool validate)
 {
+	std::vector<std::vector<std::vector<double>>> tmodels;
+	tmodels.reserve(_models.size());
+
 	for (auto &m : _models) {
+		// TODO: do somethign with this
 		if (!m->validate_state_sign_i())
 			continue;
 
 		std::vector<std::string> var_name;
 		for (auto& vm : m->_data.vars)
 			var_name.push_back(vm.first);
+		// only works if var_name == element_name
 		auto rq = rdb.quanitfy(var_name);
 
 		auto sv = m->solve();
@@ -64,64 +72,104 @@ int ModelDB::solve(ReagentDB rdb)
 		if (sv.empty())
 			continue;
 
-		std::cout << "Optimising state: ";
-		std::cout << std::endl;
+		out << "Optimising state: ";
+		out << m->_data.label;
+		out << std::endl;
+
 		for (auto l = 0; l < m->_data.lhs.size(); ++l) {
 			for (auto r : m->_data.lhs[l]) {
 				//std::cout << r.second << " ";
-				utils::ncout(r.second);
+				utils::ncout(r.second, out);
 			}
 			//std::cout << " | ";
-			std::cout << std::setw(4) << " ";
-			std::cout << m->_data.sense[l];
+			out << std::setw(4) << " ";
+			out << m->_data.sense[l];
 			//std::cout << std::setw(4) << " ";
 
 			for (auto r : m->_data.rhs[l]) {
 				//std::cout << r.second << " ";
-				utils::ncout(r.second);
+				utils::ncout(r.second, out);
 			}
 
-			std::cout << std::endl;
+			out << std::endl;
 		}
 		//std::cout << " >> " << std::endl;
-		NLINE
+		out << std::endl;
 
-		std::cout << "Num Solutions: " << sv.size() << std::endl;
+		std::vector<std::vector<double>> tsols;
+		out << "Num Solutions: " << sv.size() << std::endl;
 		int si = 1;
+		tsols.reserve(sv.size());
 		for (auto vi : sv) {
-			std::cout << "> Solution " << si;
-			std::cout << std::setw(4 - utils::ndigits(si)) << " ";
+			out << "> Solution " << si;
+			out << std::setw(5 - utils::ndigits(si)) << " ";
 			int spacing_i = 0;
+			std::vector<double> tvals;
 			for (auto vei : vi) {
-				std::cout << vei << " ";
+				//std::cout << vei << " ";
+				if (vei == 0.0)
+					vei = 0;
+				utils::ncout(vei, out, 4);
+				//std::cout << " ";
 				if (vei < 10)
 					spacing_i += 2;
 				else if (vei >= 10 && vei < 100)
 					spacing_i += 3;
+
+				tvals.push_back(vei);
 			}
 
-			auto rhs = Reagent(var_name, vi);
-			auto res = rdb.validate(rhs);//validate_reagents(lhs, rhs);
-			std::cout << std::setw(10 - spacing_i) << " ";
-			if (res == 0) {
-				std::cout << "validated";
+			if (validate) {
+				auto rhs = Reagent(var_name, vi);
+				auto res = rdb.validate(rhs);//validate_reagents(lhs, rhs);
+				out << std::setw(10 - spacing_i) << " ";
+				if (res == 0) {
+					out << "validated";
+				}
+				else if (res < 0) {
+					out << "not validated, not enough " << var_name[std::abs(res + 1)];
+					out << std::setw(3 - var_name[std::abs(res + 1)].size()) << " ";
+					out << rq[std::abs(res + 1)] << "/" << vi[std::abs(res + 1)] << " atoms needed";
+				}
+				else if (res > 0) {
+					out << "not validated, missing " << var_name[std::abs(res - 1)];
+				}
 			}
-			else if (res < 0) {
-				std::cout << "not validated, not enough " << var_name[std::abs(res + 1)];
-				std::cout << std::setw(3 - var_name[std::abs(res + 1)].size()) << " ";
-				std::cout << rq[std::abs(res + 1)] << "/" << vi[std::abs(res + 1)] << " atoms needed";
+
+			// TODO: redo this, move mass into reagent itself at creation
+			if (property.use_edb) {
+				if (!m->_data.label.empty()) {
+					double tm = 0;
+					out << std::endl;
+					out.precision(4);
+					out << std::fixed;
+					out << "> Mass (g/mol): ";
+					for (int i = 0; i < vi.size(); ++i) {
+						double mass = rdb()[i].mass() * vi[i];
+						utils::ncout(mass, out, 4);
+						tm += mass;
+					}
+				
+					out << std::setw(2) << " ";
+					out << "=";
+					out << std::setw(2) << " ";
+
+					utils::ncout(tm, out, 4);
+				}
+
+				
 			}
-			else if (res > 0) {
-				std::cout << "not validated, missing " << var_name[std::abs(res - 1)];
-			}
-			NLINE
-				++si;
+
+			out << std::endl;
+			++si;
+			tsols.push_back(tvals);
 		}
 
-		NLINE
-		NLINE
+		out << std::endl;
+		out << std::endl;
+		tmodels.push_back(tsols);
 	}
 
 
-	return 0;
+	return tmodels;
 }
