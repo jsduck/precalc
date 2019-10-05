@@ -11,6 +11,7 @@ class Input
 	struct IOdata
 	{
 		std::vector<std::string> els;
+		std::vector<double> amounts;
 		ReagentDB rdb;
 	} _self;
 

@@ -36,6 +36,7 @@ struct ModelData
 	std::vector<ConstrData> constraints;
 	std::unordered_map<std::string, GRBVar> vars;
 	std::vector<double> coefficients;
+	std::vector<std::string> col_names;
 
 	std::string label = "";
 	Reagent reagent;
@@ -46,6 +47,7 @@ struct ModelData
 		std::pair<double, double> var_range = { 0, 20 };
 		char type = 'I';
 		int num_solutions = 100;
+		bool repeat = false;
 	} options;
 };
 
@@ -259,6 +261,8 @@ public:
 	struct
 	{
 		bool use_edb = false;
+		bool repeat = false;
+		double tolerance = 0.001;
 	} property;
 
 	ModelDB();
@@ -271,7 +275,7 @@ public:
 	void insert(Model* m);
 	void insert(std::vector<std::vector<std::pair<std::string, double>>> lhs,
 		std::vector<std::vector<std::pair<std::string, double>>> rhs, std::vector<char> sense, char type = 'I',
-		std::pair<double, double> range = { 0, 20 }, Reagent re = Reagent());
+		std::pair<double, double> range = { 0, 20 }, std::vector<std::string> col_names = {}, Reagent re = Reagent());
 	void erase(int idx);
 	void clear() {
 		for (auto &m : _models) {

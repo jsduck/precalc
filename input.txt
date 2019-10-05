@@ -1,3 +1,63 @@
 ﻿Reserved
-Li Al O
+Li:Al:S:O
+Li#2:S Al#2:S#3 Al#2:O#3 Li:Al:O#2 Li#2:O 
+
+Li#2:Al#1:Si#3:S#7:Cl#3
+Li:Cl Li#2:S Al:Cl#3 Al#2:S#3 Si S
+
+Li:Al:S:O
+Li#2:S Al#2:S#3 Al#2:O#3 Li:Al:O#2 Li#2:O 
+
+Li#2:Al#1:Si#3:S#7:Cl#3
+Li:Cl Li#2:S Al:Cl#3 Al#2:S#3 Si S
+
+Li:Al:S:O
+Li#2:S Al#2:S#3 Al#2:O#3 Li:Al:O#2 Li#2:O 
+
+Li#2:Al#1:Si#3:S#7:Cl#3
+Li:Cl Li#2:S Al:Cl#3 Al#2:S#3 Si S
+
+
+
+Li#10:Al#2:Si:S#8:Cl#4
+Li#2:S Al#2:S#3 Al:Cl#3 Si S
+
+
+
+#Li:Al:Si:S:Cl
+#Li:Cl 
+
+
+Al#5:S#4:Cl#7
+Li:Cl Li#2:S Al:Cl#3 Al#2:S#3 Si:S#2 Si S
+
+
+
+
+
+
+Li:Al:O2:S#0
+Li#2:S Li#2:O Al#2:S#3 Al#2:O#3 Si Si:S#2
+
+
+
+
+
+
+
+Li#2:S Li#2:O Al#2:S#3 Al#2:O#3
+
+2 2 0 0
+0 0 2 2
+0 1 0 3
+1 1 1 1
+
+Al#2:O#3
+Li#2:S Li#2:O Al#2:S#3 Al#2:O#3 Si Si:S#2
+
+
+
+Si:Cl#4 Al:Cl#3 Li#2:S Al#2:O#3 Al#2:S#3 Li:Cl Li#2:O
+Al#2:O#3 Li#2:O
+
 Si:Cl#4 Al:Cl#3 Li#2:S Al#2:O#3 Al#2:S#3 Li:Cl Li#2:O

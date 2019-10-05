@@ -24,7 +24,25 @@ void Input::parse(std::string f) {
 
 	// Retrieve name of elements
 	for (const auto& t : t1) {
-		_self.els.push_back(t);
+		boost::tokenizer<boost::char_separator<char>> t2_0(t, s1);
+		for (const auto& m : t2_0) {
+			int c = 0;
+			const auto r = m.find('#');
+			if (r == std::string::npos) {
+				_self.els.push_back(m);
+				_self.amounts.push_back(1);
+			}
+			else {
+				const std::string n = m.substr(0, r);
+
+				std::stringstream ss;
+				ss << m.substr(r + 1);
+				ss >> c;
+
+				_self.els.push_back(n);
+				_self.amounts.push_back(c);
+			}
+		}
 	}
 
 	boost::tokenizer<boost::char_separator<char>> t2(ld[2], s0);

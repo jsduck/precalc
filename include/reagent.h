@@ -24,6 +24,7 @@ public:
 		for (auto &el : _self) {
 			if (el().q != 0) {
 				s += el().n;
+				// change this if you want to see quantity on 1
 				if (el().q > 1) {
 					s += std::to_string(el().q);
 				}

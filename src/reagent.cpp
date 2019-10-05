@@ -8,6 +8,7 @@ Reagent::Reagent() = default;
 Reagent::Reagent(std::vector<std::string> name, std::vector<double> atom_count) {
 	for (auto i = 0; i < name.size(); i++) {
 		_self.emplace_back(name[i], atom_count[i]);
+		_mass += _self.back()().mass * _self.back()().q;
 		//std::cout << ElementDB::map()[name[i]]().mass << " " << std::endl;
 	}
 }
