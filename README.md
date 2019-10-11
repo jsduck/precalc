@@ -1,4 +1,5 @@
-# no_name_yet
+# Precursor Calculator
++ Tool used to calculate precursor rations of a given stoichiometry
 + Everything is just about outdated 
 
 ## conventions
